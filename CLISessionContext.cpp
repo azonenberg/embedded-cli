@@ -97,7 +97,6 @@ void CLISessionContext::OnKeystroke(char c)
 
 		//escape sequence is over
 		m_escapeState = STATE_NORMAL;
-		return;
 	}
 
 	//Newline? Execute the command
@@ -138,6 +137,11 @@ void CLISessionContext::OnKeystroke(char c)
 			continue;
 		m_lastToken = i;
 	}
+
+	//If we backspaced over the beginning of a token, it's going to be empty.
+	//But we still want to count the empty token as present for now
+	if(m_currentToken > m_lastToken)
+		m_lastToken = m_currentToken;
 
 	//All done with whatever we're printing, flush stdout
 	m_output->Flush();
