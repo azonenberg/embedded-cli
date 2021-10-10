@@ -101,8 +101,6 @@ protected:
 
 	bool ParseCommand();
 
-	void DebugPrint();
-
 	///@brief The output stream
 	CLIOutputStream* m_output;
 

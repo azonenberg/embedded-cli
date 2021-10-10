@@ -150,8 +150,6 @@ void CLISessionContext::OnKeystroke(char c)
 
 	//All done with whatever we're printing, flush stdout
 	m_output->Flush();
-
-	//DebugPrint();
 }
 
 ///@brief Handles a printable character
@@ -185,7 +183,7 @@ void CLISessionContext::OnChar(char c)
 ///@brief Handles a tab character
 void CLISessionContext::OnTabComplete()
 {
-	printf("tab complete todo\n");
+	m_output->Printf("\n*** Tab complete unimplemented ***\n");
 }
 
 ///@brief Handles a '?' character
@@ -509,13 +507,6 @@ void CLISessionContext::RedrawLineRightOfCursor()
 	//Move the cursor back to where it belongs
 	for(int i=0; i<charsDrawn; i++)
 		m_output->CursorLeft();
-}
-
-void CLISessionContext::DebugPrint()
-{
-	printf("Cursor: char %d of token %d/%d\n", m_tokenOffset, m_currentToken, m_lastToken);
-	for(int i=0; i <= m_lastToken; i++)
-		printf("    [%2d] %s (%d)\n", i, m_command[i].m_text, m_command[i].m_commandID);
 }
 
 /**

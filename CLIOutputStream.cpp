@@ -234,3 +234,12 @@ void CLIOutputStream::Printf(const char* format, ...)
 
 	__builtin_va_end(args);
 }
+
+/**
+	@brief Disconnects from the underlying transport (if socket based).
+
+	The default implementation does nothing.
+ */
+void CLIOutputStream::Disconnect()
+{
+}

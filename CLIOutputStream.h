@@ -77,6 +77,8 @@ public:
 		@brief Flushes pending content so that it's displayed to the user.
 	 */
 	virtual void Flush() =0;
+
+	virtual void Disconnect();
 };
 
 #endif
