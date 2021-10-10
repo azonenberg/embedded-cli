@@ -41,6 +41,9 @@
 
 	Implementations of this class are expected to perform translation from \n to \r\n if required by the
 	underlying output device.
+
+	Provides a minimal printf-compatible output formatting helper that does not actually call the libc printf.
+	This is important since printf in most embedded libc's can trigger a dynamic allocation.
  */
 class CLIOutputStream
 {
@@ -67,10 +70,8 @@ public:
 	 */
 	virtual void PutString(const char* str) =0;
 
-	/**
-		@brief Prints a string with a minimal subset of printf-style formatting codes
-	 */
-	//virtual void Printf(const char* str, ...) =0
+	void WritePadded(const char* str, int minlen, char padding, int prepad);
+	void Printf(const char* format, ...);
 
 	/**
 		@brief Flushes pending content so that it's displayed to the user.

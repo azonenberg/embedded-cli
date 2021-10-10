@@ -7,3 +7,5 @@ and more.
 
 This library performs no dynamic memory allocation, and does not call any C/C++ library functions which
 may trigger a dynamic allocation.
+
+The CLI supports shortest-unique-prefix completion, similar to that used by most networking equipment.

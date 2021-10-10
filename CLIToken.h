@@ -34,6 +34,7 @@
 #ifndef CLIToken_h
 #define CLIToken_h
 
+#include <stdint.h>
 #include <string.h>
 
 #ifndef MAX_TOKEN_LEN
@@ -44,7 +45,7 @@
 #endif
 
 ///@brief Empty string or otherwise malformed
-#define INVALID_TOKEN 0xffff
+#define INVALID_COMMAND 0xffff
 
 ///@brief This token can consist of arbitrary freeform text
 #define FREEFORM_TOKEN 0xfffe
@@ -79,7 +80,7 @@ public:
 	void Clear()
 	{
 		memset(m_text, 0, MAX_TOKEN_LEN);
-		m_commandID = INVALID_TOKEN;
+		m_commandID = INVALID_COMMAND;
 	}
 
 	/**

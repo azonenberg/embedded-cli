@@ -29,113 +29,33 @@
 
 /**
 	@file
-	@brief Declaration of CLISessionContext
+	@brief Implementation of CLIToken
  */
-#ifndef CLISessionContext_h
-#define CLISessionContext_h
-
-#include <stdint.h>
-#include "CLICommand.h"
-
-class CLIOutputStream;
-
-#ifndef CLI_USERNAME_MAX
-#define CLI_USERNAME_MAX 32
-#endif
+#include "stdio.h"
+#include "CLIToken.h"
+#include <string.h>
+#include <ctype.h>
 
 /**
-	@brief A single keyword in the CLI command tree
+	@brief Checks if a short-form command matches this token
  */
-struct clikeyword_t
+bool CLIToken::PrefixMatch(const char* fullcommand)
 {
-	///@brief ASCII representation of the unabbreviated keyword
-	const char*			keyword;
+	//Null is legal to pass if we match against the end of the token array.
+	//It never matches, since it's not a valid command
+	if(fullcommand == NULL)
+		return false;
 
-	///@brief Integer identifier used by the command parser
-	uint16_t			id;
-
-	///@brief Child nodes for subsequent words
-	const clikeyword_t*	children;
-
-	///@brief Help message
-	const char*			help;
-};
-
-/**
-	@brief A session context for a CLI session
- */
-class CLISessionContext
-{
-public:
-	CLISessionContext(const clikeyword_t* root)
-	: m_rootCommands(root)
-	{}
-
-	virtual void Initialize(CLIOutputStream* ctx, const char* username);
-
-	void OnKeystroke(char c);
-
-	/**
-		@brief Prints the command prompt
-	 */
-	virtual void PrintPrompt() =0;
-
-protected:
-
-	///@brief Handles a line of input being fully entered
-	virtual void OnExecute() =0;
-
-	void RedrawLineRightOfCursor();
-
-	void OnExecuteComplete();
-
-	void OnBackspace();
-	void OnTabComplete();
-	void OnSpace();
-	void OnChar(char c);
-	void OnArrowLeft();
-	void OnArrowRight();
-	void OnLineReady();
-	void OnHelp();
-	void PrintHelp(const clikeyword_t* node, const char* prefix);
-
-	bool ParseCommand();
-
-	void DebugPrint();
-
-	///@brief The output stream
-	CLIOutputStream* m_output;
-
-	///@brief The command currently being
-	CLICommand m_command;
-
-	/**
-		@brief Name of the currently logged in user
-
-		Provided by upper layer in case of e.g. SSH. May be blank in case of UART or other transports that do not
-		include authentication.
-	 */
-	char m_username[CLI_USERNAME_MAX];
-
-	///@brief State machine for escape sequence parsing
-	enum
+	for(size_t i = 0; i < MAX_TOKEN_LEN; i++)
 	{
-		STATE_NORMAL,
-		STATE_EXPECT_BRACKET,
-		STATE_EXPECT_PAYLOAD
-	} m_escapeState;
+		//End of input with no mismatches? It's a match
+		if(m_text[i] == '\0')
+			return true;
 
-	///@brief Index of the last token in the command
-	int m_lastToken;
+		//Early-out on the first mismatch
+		if(m_text[i] != fullcommand[i])
+			return false;
+	}
 
-	///@brief Index of the token we're currently writing to
-	int m_currentToken;
-
-	///@brief Position of the cursor within the current token
-	int m_tokenOffset;
-
-	///@brief The root of the command tree
-	const clikeyword_t* m_rootCommands;
-};
-
-#endif
+	return true;
+}

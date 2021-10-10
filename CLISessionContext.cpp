@@ -117,6 +117,10 @@ void CLISessionContext::OnKeystroke(char c)
 	else if(c == '\t')
 		OnTabComplete();
 
+	//Question mark? Print help text
+	else if(c == '?')
+		OnHelp();
+
 	//Space starts a new token
 	else if(c == ' ')
 		OnSpace();
@@ -146,7 +150,7 @@ void CLISessionContext::OnKeystroke(char c)
 	//All done with whatever we're printing, flush stdout
 	m_output->Flush();
 
-	DebugPrint();
+	//DebugPrint();
 }
 
 ///@brief Handles a printable character
@@ -181,6 +185,98 @@ void CLISessionContext::OnChar(char c)
 void CLISessionContext::OnTabComplete()
 {
 	printf("tab complete todo\n");
+}
+
+///@brief Handles a '?' character
+void CLISessionContext::OnHelp()
+{
+	if(m_rootCommands == NULL)
+		return;
+
+	//If we have NO command, show all legal top level commands and descriptions
+	if(m_command[0].IsEmpty())
+	{
+		PrintHelp(m_rootCommands, NULL);
+		return;
+	}
+
+	//Go through each token and figure out if it matches anything we know about
+	const clikeyword_t* node = m_rootCommands;
+	for(size_t i = 0; i < MAX_TOKENS_PER_COMMAND; i ++)
+	{
+		//See what's legal at this position
+		if(m_command[i].IsEmpty())
+		{
+			if(node != NULL)
+				PrintHelp(node, NULL);
+		}
+
+		/*
+		//If the node at the end of the command is not NULL, we're missing arguments!
+		if(m_command[i].IsEmpty())
+		{
+			if(node != NULL)
+			{
+				m_output->Printf("\nIncomplete command: \"%s\" expects arguments", m_command[i].m_text);
+				return false;
+			}
+
+			break;
+		}
+
+		m_command[i].m_commandID = INVALID_COMMAND;
+		*/
+		for(auto row = node; row->keyword != NULL; row++)
+		{
+			//Wildcards always match
+			if(row->id == FREEFORM_TOKEN)
+			{
+			}
+
+			else
+			{
+				//If the token doesn't match the prefix, we're definitely not a hit
+				if(!m_command[i].PrefixMatch(row->keyword))
+					continue;
+
+				//If it matches, but the subsequent token matches too, the command is ambiguous
+				//Can't do help!
+				if(m_command[i].PrefixMatch(row[1].keyword))
+				{
+					return;
+				}
+			}
+
+			//Match!
+			m_command[i].m_commandID = row->id;
+			node = row->children;
+		}
+	}
+}
+
+///@brief Prints help
+void CLISessionContext::PrintHelp(const clikeyword_t* node, const char* prefix)
+{
+	bool filter = true;
+	if( (prefix == NULL) || (strlen(prefix) == 0) )
+		filter = false;
+
+	m_output->Printf("\n");
+	for(size_t i=0; node[i].keyword != NULL; i++)
+	{
+		//Skip stuff with the wrong prefix
+		if(filter)
+		{
+			if(node[i].keyword != strstr(node[i].keyword, prefix))
+				continue;
+		}
+
+		m_output->Printf("    %-20s %s\n", node[i].keyword, node[i].help);
+	}
+
+	PrintPrompt();
+
+	//TODO: re-print the current command and move the cursor to the right spot
 }
 
 ///@brief Handles a backspace character
@@ -421,51 +517,48 @@ bool CLISessionContext::ParseCommand()
 	if(m_rootCommands == NULL)
 		return false;
 
-	/*
 	//Go through each token and figure out if it matches anything we know about
-	const clikeyword_t* node = root;
-	for(size_t i = 0; i < MAX_TOKENS; i ++)
+	const clikeyword_t* node = m_rootCommands;
+	for(size_t i = 0; i < MAX_TOKENS_PER_COMMAND; i ++)
 	{
+		//If the node at the end of the command is not NULL, we're missing arguments!
 		if(m_command[i].IsEmpty())
 		{
-			//If the node is not NULL, we're missing arguments!
 			if(node != NULL)
 			{
-				m_uart->Printf("\nIncomplete command\n");
+				m_output->Printf("\nIncomplete command: \"%s\" expects arguments", m_command[i].m_text);
 				return false;
 			}
 
 			break;
 		}
 
-		//Debug print
-		//m_uart->Printf("    %d: %s ", i, m_command[i].m_text);
+		m_command[i].m_commandID = INVALID_COMMAND;
 
-		m_command[i].m_commandID = CMD_NULL;
-
-		for(const clikeyword_t* row = node; row->keyword != NULL; row++)
+		for(auto row = node; row->keyword != NULL; row++)
 		{
-			//TODO: handle wildcards
-
-			//If the token doesn't match the prefix, we're definitely not a hit
-			if(!m_command[i].PrefixMatch(row->keyword))
-				continue;
-
-			//If it matches, but the subsequent token matches too, the command is ambiguous!
-			//Fail with an error.
-			if(m_command[i].PrefixMatch(row[1].keyword))
+			//Wildcards always match
+			if(row->id == FREEFORM_TOKEN)
 			{
-				m_uart->Printf(
-					"\nAmbiguous command (at word %d): you typed \"%s\", but this could be short for \"%s\" or \"%s\"\n",
-					i,
-					m_command[i].m_text,
-					row->keyword,
-					row[1].keyword);
-				return false;
 			}
 
-			//Debug print
-			//m_uart->Printf("(matched \"%s\")\n", row->keyword);
+			else
+			{
+				//If the token doesn't match the prefix, we're definitely not a hit
+				if(!m_command[i].PrefixMatch(row->keyword))
+					continue;
+
+				//If it matches, but the subsequent token matches too, the command is ambiguous!
+				//Fail with an error.
+				if(m_command[i].PrefixMatch(row[1].keyword))
+				{
+					m_output->Printf("\nAmbiguous command (\"%s\" could mean \"%s\" or \"%s\")",
+						m_command[i].m_text,
+						row->keyword,
+						row[1].keyword);
+					return false;
+				}
+			}
 
 			//Match!
 			m_command[i].m_commandID = row->id;
@@ -473,20 +566,13 @@ bool CLISessionContext::ParseCommand()
 		}
 
 		//Didn't match anything at all, give up
-		if(m_command[i].m_commandID == CMD_NULL)
+		if(m_command[i].m_commandID == INVALID_COMMAND)
 		{
-			m_uart->Printf(
-				"\nUnrecognized command (at word %d): you typed \"%s\", but this did not match any known commands\n",
-				i,
-				m_command[i].m_text);
+			m_output->Printf("\nUnrecognized command: \"%s\"", m_command[i].m_text);
 			return false;
 		}
 
 	}
-
-	//If we get here, all good
-	return true;
-	*/
 
 	//all good
 	return true;
