@@ -521,6 +521,13 @@ bool CLISessionContext::ParseCommand()
 	const clikeyword_t* node = m_rootCommands;
 	for(size_t i = 0; i < MAX_TOKENS_PER_COMMAND; i ++)
 	{
+		//If node is null, give an error (too many arguments to command)
+		if(node == NULL)
+		{
+			m_output->Printf("Too many arguments for \"%s\"\n", m_command[0].m_text);
+			return false;
+		}
+
 		//If the node at the end of the command is not NULL, we're missing arguments!
 		if(m_command[i].IsEmpty())
 		{
