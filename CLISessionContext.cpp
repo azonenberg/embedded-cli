@@ -556,10 +556,17 @@ bool CLISessionContext::ParseCommand()
 				if(!m_command[i].PrefixMatch(row->keyword))
 					continue;
 
+				//Check for an exact match
+				if(m_command[i].ExactMatch(row->keyword))
+				{
+					m_command[i].m_commandID = row->id;
+					node = row->children;
+					break;
+				}
+
 				//If it matches, but the subsequent token matches too, the command is ambiguous!
 				//Fail with an error unless it's an exact match to the first command.
-				//(This is needed so that e.g. "speed 100" isn't ambiguous since it also matches "speed 1000")
-				else if(m_command[i].PrefixMatch(row[1].keyword) && !m_command[i].ExactMatch(row->keyword))
+				else if(m_command[i].PrefixMatch(row[1].keyword))
 				{
 					m_output->Printf("Ambiguous command: \"%s\" could mean \"%s\" or \"%s\"\n",
 						m_command[i].m_text,
