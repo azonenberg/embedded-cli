@@ -2,7 +2,7 @@
 *                                                                                                                      *
 * embedded-cli v0.1                                                                                                    *
 *                                                                                                                      *
-* Copyright (c) 2021 Andrew D. Zonenberg and contributors                                                              *
+* Copyright (c) 2021-2023 Andrew D. Zonenberg and contributors                                                         *
 * All rights reserved.                                                                                                 *
 *                                                                                                                      *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the     *
@@ -58,4 +58,17 @@ bool CLIToken::PrefixMatch(const char* fullcommand)
 	}
 
 	return true;
+}
+
+/**
+	@brief Checks if a command exactly matches this token
+ */
+bool CLIToken::ExactMatch(const char* fullcommand)
+{
+	//Null is legal to pass if we match against the end of the token array.
+	//It never matches, since it's not a valid command
+	if(fullcommand == NULL)
+		return false;
+
+	return (0 == strcmp(m_text, fullcommand) );
 }
