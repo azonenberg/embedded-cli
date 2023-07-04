@@ -2,7 +2,7 @@
 *                                                                                                                      *
 * embedded-cli v0.1                                                                                                    *
 *                                                                                                                      *
-* Copyright (c) 2021 Andrew D. Zonenberg and contributors                                                              *
+* Copyright (c) 2021-2023 Andrew D. Zonenberg and contributors                                                         *
 * All rights reserved.                                                                                                 *
 *                                                                                                                      *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the     *
@@ -251,21 +251,31 @@ void CLISessionContext::OnHelp()
 ///@brief Prints help
 void CLISessionContext::PrintHelp(const clikeyword_t* node, const char* prefix)
 {
-	bool filter = true;
-	if( (prefix == NULL) || (strlen(prefix) == 0) )
-		filter = false;
-
 	m_output->Printf("?\n");
-	for(size_t i=0; node[i].keyword != NULL; i++)
-	{
-		//Skip stuff with the wrong prefix
-		if(filter)
-		{
-			if(node[i].keyword != strstr(node[i].keyword, prefix))
-				continue;
-		}
 
-		m_output->Printf("    %-20s %s\n", node[i].keyword, node[i].help);
+	//If node is null, there's nothing we can do
+	if(!node)
+		m_output->Printf("    No help available\n");
+
+	//Print the help text for matching commands
+	else
+	{
+		bool filter = true;
+		if( (prefix == nullptr) || (strlen(prefix) == 0) )
+			filter = false;
+
+		m_output->Printf("?\n");
+		for(size_t i=0; node[i].keyword != nullptr; i++)
+		{
+			//Skip stuff with the wrong prefix
+			if(filter)
+			{
+				if(node[i].keyword != strstr(node[i].keyword, prefix))
+					continue;
+			}
+
+			m_output->Printf("    %-20s %s\n", node[i].keyword, node[i].help);
+		}
 	}
 
 	PrintPrompt();
