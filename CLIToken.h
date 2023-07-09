@@ -50,6 +50,9 @@
 ///@brief This token can consist of arbitrary freeform text
 #define FREEFORM_TOKEN 0xfffe
 
+///@brief This token denotes an early end-of-command (for optional arguments)
+#define OPTIONAL_TOKEN 0xfffd
+
 /**
 	@brief A single token within a command
  */

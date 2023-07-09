@@ -536,6 +536,14 @@ bool CLISessionContext::ParseCommand()
 		{
 			if(node != NULL)
 			{
+				//See if there is an optional token at the start of the list
+				//(if so, we can skip the unnecessary arguments)
+				if(node->id == OPTIONAL_TOKEN)
+				{
+					m_command[i].m_commandID = OPTIONAL_TOKEN;
+					break;
+				}
+
 				if(i > 0)
 					m_output->Printf("Incomplete command: \"%s\" expects arguments\n", m_command[i-1].m_text);
 				return false;
