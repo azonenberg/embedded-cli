@@ -47,11 +47,14 @@
 ///@brief Empty string or otherwise malformed
 #define INVALID_COMMAND 0xffff
 
-///@brief This token can consist of arbitrary freeform text
+///@brief This token can consist of arbitrary freeform text without spaces
 #define FREEFORM_TOKEN 0xfffe
 
 ///@brief This token denotes an early end-of-command (for optional arguments)
 #define OPTIONAL_TOKEN 0xfffd
+
+///@brief This token consumes all input to the end of the command line (including spaces)
+#define TEXT_TOKEN 0xfffc
 
 /**
 	@brief A single token within a command

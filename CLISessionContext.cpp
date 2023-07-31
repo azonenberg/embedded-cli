@@ -529,6 +529,7 @@ bool CLISessionContext::ParseCommand()
 
 	//Go through each token and figure out if it matches anything we know about
 	const clikeyword_t* node = m_rootCommands;
+	bool earlyOut = false;
 	for(size_t i = 0; i < MAX_TOKENS_PER_COMMAND; i ++)
 	{
 		//If the node at the end of the command is not NULL, we're missing arguments!
@@ -563,8 +564,26 @@ bool CLISessionContext::ParseCommand()
 
 		for(auto row = node; row->keyword != NULL; row++)
 		{
-			//Wildcards always match
-			if(row->id == FREEFORM_TOKEN)
+			//Wildcards always match.
+			//Freeform token only consumes one token.
+			//Text token consumes all subsequent input.
+			if(row->id == TEXT_TOKEN)
+			{
+				for(size_t j=i+1; j<MAX_TOKENS_PER_COMMAND; j++)
+				{
+					if(strlen(m_command[j].m_text) == 0)
+						break;
+
+					strncat(m_command[i].m_text, " ", MAX_TOKEN_LEN);
+					strncat(m_command[i].m_text, m_command[j].m_text, MAX_TOKEN_LEN);
+				}
+
+				m_command[i].m_commandID = row->id;
+				node = nullptr;
+				earlyOut = true;
+				break;
+			}
+			else if(row->id == FREEFORM_TOKEN)
 			{
 			}
 
@@ -598,6 +617,9 @@ bool CLISessionContext::ParseCommand()
 			m_command[i].m_commandID = row->id;
 			node = row->children;
 		}
+
+		if(earlyOut)
+			break;
 
 		//Didn't match anything at all, give up
 		if(m_command[i].m_commandID == INVALID_COMMAND)
