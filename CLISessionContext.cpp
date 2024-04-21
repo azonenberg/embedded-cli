@@ -1,8 +1,8 @@
 /***********************************************************************************************************************
 *                                                                                                                      *
-* embedded-cli v0.1                                                                                                    *
+* embedded-cli                                                                                                         *
 *                                                                                                                      *
-* Copyright (c) 2021-2023 Andrew D. Zonenberg and contributors                                                         *
+* Copyright (c) 2021-2024 Andrew D. Zonenberg and contributors                                                         *
 * All rights reserved.                                                                                                 *
 *                                                                                                                      *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the     *
@@ -574,8 +574,8 @@ bool CLISessionContext::ParseCommand()
 					if(strlen(m_command[j].m_text) == 0)
 						break;
 
-					strncat(m_command[i].m_text, " ", MAX_TOKEN_LEN);
-					strncat(m_command[i].m_text, m_command[j].m_text, MAX_TOKEN_LEN);
+					strncat(m_command[i].m_text, " ", MAX_TOKEN_LEN-1);
+					strncat(m_command[i].m_text, m_command[j].m_text, MAX_TOKEN_LEN-1);
 				}
 
 				m_command[i].m_commandID = row->id;
