@@ -1,8 +1,8 @@
 /***********************************************************************************************************************
 *                                                                                                                      *
-* embedded-cli v0.1                                                                                                    *
+* embedded-cli                                                                                                         *
 *                                                                                                                      *
-* Copyright (c) 2021 Andrew D. Zonenberg and contributors                                                              *
+* Copyright (c) 2021-2024 Andrew D. Zonenberg and contributors                                                         *
 * All rights reserved.                                                                                                 *
 *                                                                                                                      *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the     *
@@ -73,12 +73,14 @@ public:
 
 	virtual void Initialize(CLIOutputStream* ctx, const char* username);
 
-	void OnKeystroke(char c);
+	void OnKeystroke(char c, bool echo = true);
 
 	/**
 		@brief Prints the command prompt
 	 */
 	virtual void PrintPrompt() =0;
+
+	void SilentExecute();
 
 protected:
 
@@ -92,7 +94,7 @@ protected:
 	void OnBackspace();
 	void OnTabComplete();
 	void OnSpace();
-	void OnChar(char c);
+	void OnChar(char c, bool echo = true);
 	void OnArrowLeft();
 	void OnArrowRight();
 	void OnLineReady();

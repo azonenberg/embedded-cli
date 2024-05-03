@@ -60,7 +60,7 @@ void CLISessionContext::Initialize(CLIOutputStream* ctx, const char* username)
 /**
 	@brief Handles an incoming keystroke
  */
-void CLISessionContext::OnKeystroke(char c)
+void CLISessionContext::OnKeystroke(char c, bool echo)
 {
 	//Square bracket in escape sequence
 	if(m_escapeState == STATE_EXPECT_BRACKET)
@@ -102,7 +102,8 @@ void CLISessionContext::OnKeystroke(char c)
 	//Newline? Execute the command
 	else if( (c == '\r') || (c == '\n') )
 	{
-		m_output->PutCharacter('\n');
+		if(echo)
+			m_output->PutCharacter('\n');
 		OnLineReady();
 		if(ParseCommand())
 			OnExecute();
@@ -131,7 +132,7 @@ void CLISessionContext::OnKeystroke(char c)
 		m_escapeState = STATE_EXPECT_BRACKET;
 
 	else
-		OnChar(c);
+		OnChar(c, echo);
 
 	//Update the last-token index
 	for(size_t i=0; i<MAX_TOKENS_PER_COMMAND; i++)
@@ -152,8 +153,26 @@ void CLISessionContext::OnKeystroke(char c)
 	m_output->Flush();
 }
 
+/**
+	@brief Parse and execute the current command without printing anything besides what the command generates
+
+	Usable for scripting flows etc
+ */
+void CLISessionContext::SilentExecute()
+{
+	OnLineReady();
+	if(ParseCommand())
+		OnExecute();
+
+	m_command.Clear();
+
+	m_lastToken = 0;
+	m_currentToken = 0;
+	m_tokenOffset = 0;
+}
+
 ///@brief Handles a printable character
-void CLISessionContext::OnChar(char c)
+void CLISessionContext::OnChar(char c, bool echo)
 {
 	//If the token doesn't have room for another character, abort
 	char* token = m_command[m_currentToken].m_text;
@@ -173,10 +192,11 @@ void CLISessionContext::OnChar(char c)
 	//Append the character to the current token and echo it
 	token[m_tokenOffset ++] = c;
 	len++;
-	m_output->PutCharacter(c);
+	if(echo)
+		m_output->PutCharacter(c);
 
 	//Update the remainder of the line.
-	if(redrawLine)
+	if(redrawLine && echo)
 		RedrawLineRightOfCursor();
 }
 
