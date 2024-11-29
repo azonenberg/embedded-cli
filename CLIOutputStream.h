@@ -34,6 +34,8 @@
 #ifndef CLIOutputStream_h
 #define CLIOutputStream_h
 
+#include <embedded-utils/CharacterDevice.h>
+
 /**
 	@brief An output stream for text content
 
@@ -45,7 +47,7 @@
 	Provides a minimal printf-compatible output formatting helper that does not actually call the libc printf.
 	This is important since printf in most embedded libc's can trigger a dynamic allocation.
  */
-class CLIOutputStream
+class CLIOutputStream : public CharacterDevice
 {
 public:
 
@@ -58,6 +60,14 @@ public:
 	void CursorRight()
 	{ PutString("\x1b[C"); }
 
+	///@brief CharacterDevice compatibility
+	virtual void PrintBinary(char ch) override
+	{ PutCharacter(ch); }
+
+	///@brief CharacterDevice compatibility
+	virtual char BlockingRead()
+	{ return 0; }
+
 	/**
 		@brief Prints a single character
 	 */
@@ -67,9 +77,6 @@ public:
 		@brief Prints a string with no formatting
 	 */
 	virtual void PutString(const char* str) =0;
-
-	void WritePadded(const char* str, int minlen, char padding, int prepad);
-	void Printf(const char* format, ...);
 
 	/**
 		@brief Flushes pending content so that it's displayed to the user.
